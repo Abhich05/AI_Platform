@@ -2,7 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-surface: #0b0f17;
+  --color-surface-card: #111827;
+  --color-surface-border: #1f2937;
+}
+
+:root[data-theme='light'] {
+  --color-surface: #f8fafc;
+  --color-surface-card: #ffffff;
+  --color-surface-border: #e2e8f0;
+}
+
 html,
 body {
   @apply bg-surface text-slate-100;
 }
+
+/*
+ * Every component was written with dark-mode colors as its only (base)
+ * classes - there are no dark: variants to invert. Rather than rewrite
+ * every className, light mode is implemented as a targeted override of
+ * the specific utility classes actually used, scoped to [data-theme="light"].
+ */
+:root[data-theme='light'] .text-slate-100 { color: #0f172a; }
+:root[data-theme='light'] .text-slate-200 { color: #1e293b; }
+:root[data-theme='light'] .text-slate-300 { color: #334155; }
+:root[data-theme='light'] .text-slate-400 { color: #475569; }
+:root[data-theme='light'] .text-slate-500 { color: #64748b; }
+:root[data-theme='light'] .text-slate-600 { color: #94a3b8; }
+
+:root[data-theme='light'] .hover\:text-slate-100:hover { color: #0f172a; }
+:root[data-theme='light'] .hover\:text-slate-200:hover { color: #1e293b; }
+:root[data-theme='light'] .hover\:text-slate-300:hover { color: #334155; }
+
+:root[data-theme='light'] .text-purple-300 { color: #7e22ce; }
+:root[data-theme='light'] .text-blue-300 { color: #1d4ed8; }
+:root[data-theme='light'] .text-green-300 { color: #15803d; }
+:root[data-theme='light'] .text-green-400 { color: #15803d; }
+:root[data-theme='light'] .text-amber-300 { color: #b45309; }
+:root[data-theme='light'] .text-amber-400 { color: #b45309; }
+:root[data-theme='light'] .text-red-300 { color: #b91c1c; }
+:root[data-theme='light'] .text-red-400 { color: #b91c1c; }
+:root[data-theme='light'] .text-indigo-300 { color: #4338ca; }
+:root[data-theme='light'] .text-indigo-400 { color: #4338ca; }
+
+:root[data-theme='light'] .bg-white\/5 { background-color: rgba(15, 23, 42, 0.04); }
+:root[data-theme='light'] .hover\:bg-white\/5:hover { background-color: rgba(15, 23, 42, 0.04); }
+:root[data-theme='light'] .hover\:bg-white\/10:hover { background-color: rgba(15, 23, 42, 0.06); }

@@ -36,4 +36,24 @@ async function me(req, res) {
   res.status(200).json({ user: authService.sanitizeUser(req.user) });
 }
 
-module.exports = { register, login, me };
+async function updateProfile(req, res, next) {
+  if (handleValidation(req, res)) return;
+  try {
+    const user = await authService.updateProfile(req.user._id, req.body);
+    res.status(200).json({ user });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function changePassword(req, res, next) {
+  if (handleValidation(req, res)) return;
+  try {
+    await authService.changePassword(req.user._id, req.body);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { register, login, me, updateProfile, changePassword };

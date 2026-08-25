@@ -6,9 +6,9 @@ module.exports = {
     extend: {
       colors: {
         surface: {
-          DEFAULT: '#0b0f17',
-          card: '#111827',
-          border: '#1f2937',
+          DEFAULT: 'var(--color-surface)',
+          card: 'var(--color-surface-card)',
+          border: 'var(--color-surface-border)',
         },
       },
     },

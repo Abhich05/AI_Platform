@@ -59,4 +59,31 @@ async function login({ email, password }) {
   return { token, user: sanitizeUser(user) };
 }
 
-module.exports = { AppError, register, login, sanitizeUser };
+async function updateProfile(userId, { name }) {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
+  }
+  if (name !== undefined) {
+    user.name = name;
+  }
+  await user.save();
+  return sanitizeUser(user);
+}
+
+async function changePassword(userId, { currentPassword, newPassword }) {
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
+  }
+
+  const matches = await bcrypt.compare(currentPassword, user.password);
+  if (!matches) {
+    throw new AppError(401, 'INVALID_CREDENTIALS', 'Current password is incorrect');
+  }
+
+  user.password = await bcrypt.hash(newPassword, env.BCRYPT_SALT_ROUNDS);
+  await user.save();
+}
+
+module.exports = { AppError, register, login, sanitizeUser, updateProfile, changePassword };

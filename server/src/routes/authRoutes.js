@@ -37,4 +37,22 @@ router.post(
 
 router.get('/me', protect, authController.me);
 
+router.put(
+  '/me',
+  protect,
+  [body('name').optional().trim().notEmpty().withMessage('Name cannot be empty')],
+  authController.updateProfile
+);
+
+router.post(
+  '/change-password',
+  protect,
+  authLimiter,
+  [
+    body('currentPassword').notEmpty().withMessage('Current password is required'),
+    body('newPassword').isLength({ min: 8 }).withMessage('New password must be at least 8 characters'),
+  ],
+  authController.changePassword
+);
+
 module.exports = router;

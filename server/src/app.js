@@ -9,6 +9,7 @@ const workflowRoutes = require('./routes/workflowRoutes');
 const executionRoutes = require('./routes/executionRoutes');
 const integrationRoutes = require('./routes/integrationRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 function createApp() {
@@ -35,6 +36,7 @@ function createApp() {
   app.use('/api/executions', executionRoutes);
   app.use('/api/integrations', integrationRoutes);
   app.use('/api/notifications', notificationRoutes);
+  app.use('/api/settings', settingsRoutes);
 
   app.use(notFound);
   app.use(errorHandler);

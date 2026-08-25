@@ -28,6 +28,12 @@ export const useAuthStore = create(
         return data.user;
       },
 
+      updateProfile: async (updates) => {
+        const { data } = await api.put('/auth/me', updates);
+        set({ user: data.user });
+        return data.user;
+      },
+
       logout: () => {
         set({ token: null, user: null });
       },
