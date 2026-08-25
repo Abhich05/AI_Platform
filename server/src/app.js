@@ -6,6 +6,7 @@ const compression = require('compression');
 const env = require('./config/env');
 const authRoutes = require('./routes/authRoutes');
 const workflowRoutes = require('./routes/workflowRoutes');
+const executionRoutes = require('./routes/executionRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 function createApp() {
@@ -29,6 +30,7 @@ function createApp() {
 
   app.use('/api/auth', authRoutes);
   app.use('/api/workflows', workflowRoutes);
+  app.use('/api/executions', executionRoutes);
 
   app.use(notFound);
   app.use(errorHandler);

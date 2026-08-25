@@ -116,10 +116,21 @@ async function dashboardStats(owner) {
 
   const successRate = executionsTotal > 0 ? Math.round((completed / executionsTotal) * 100) : null;
 
-  const recentExecutions = await Execution.find({ owner })
+  const recentExecutionDocs = await Execution.find({ owner })
     .sort({ createdAt: -1 })
     .limit(5)
-    .select('workflowId status startTime endTime duration createdAt');
+    .select('workflowId workflowSnapshot.name status startTime endTime duration createdAt');
+
+  const recentExecutions = recentExecutionDocs.map((exec) => ({
+    id: exec._id,
+    workflowId: exec.workflowId,
+    workflowName: exec.workflowSnapshot?.name || 'Untitled Workflow',
+    status: exec.status,
+    startTime: exec.startTime,
+    endTime: exec.endTime,
+    duration: exec.duration,
+    createdAt: exec.createdAt,
+  }));
 
   return {
     activeWorkflows: active,

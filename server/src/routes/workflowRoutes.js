@@ -40,6 +40,7 @@ router.put(
 );
 
 router.post('/:id/duplicate', workflowController.duplicateWorkflow);
+router.post('/:id/execute', workflowController.execute);
 router.delete('/:id', workflowController.remove);
 
 module.exports = router;

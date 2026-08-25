@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 const workflowService = require('../services/workflowService');
 const aiService = require('../services/aiService');
+const executionService = require('../services/executionService');
 
 function handleValidation(req, res) {
   const errors = validationResult(req);
@@ -84,6 +85,15 @@ async function duplicateWorkflow(req, res, next) {
   }
 }
 
+async function execute(req, res, next) {
+  try {
+    const execution = await executionService.triggerExecution(req.user._id, req.params.id, req.body?.inputs || {});
+    res.status(202).json({ execution });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function remove(req, res, next) {
   try {
     await workflowService.remove(req.user._id, req.params.id);
@@ -93,4 +103,4 @@ async function remove(req, res, next) {
   }
 }
 
-module.exports = { dashboard, list, generate, create, getById, update, duplicateWorkflow, remove };
+module.exports = { dashboard, list, generate, create, getById, update, duplicateWorkflow, execute, remove };

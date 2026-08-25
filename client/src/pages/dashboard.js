@@ -35,8 +35,8 @@ export default function Dashboard() {
               Welcome{user?.name ? `, ${user.name}` : ''}
             </h1>
             <p className="mt-1 text-sm text-slate-400">
-              Your operator console. Execution activity and the AI feed will appear here as
-              later phases come online.
+              Your operator console. The AI activity feed will appear here as later phases come
+              online.
             </p>
           </div>
           <Link
@@ -57,15 +57,20 @@ export default function Dashboard() {
           ) : stats?.recentExecutions?.length ? (
             <ul className="divide-y divide-surface-border text-sm">
               {stats.recentExecutions.map((exec) => (
-                <li key={exec._id} className="flex justify-between py-2 text-slate-300">
-                  <span>{exec.workflowId}</span>
-                  <span className="text-slate-500">{exec.status}</span>
+                <li key={exec.id}>
+                  <Link
+                    href={`/executions/${exec.id}`}
+                    className="flex justify-between py-2 text-slate-300 hover:text-indigo-300"
+                  >
+                    <span>{exec.workflowName}</span>
+                    <span className="text-slate-500">{exec.status}</span>
+                  </Link>
                 </li>
               ))}
             </ul>
           ) : (
             <p className="text-sm text-slate-500">
-              No executions yet. Runs will appear here once the agent orchestration engine ships.
+              No executions yet. Trigger a run from a workflow to see it here.
             </p>
           )}
         </div>

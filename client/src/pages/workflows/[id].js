@@ -9,6 +9,7 @@ import NodeConfigPanel from '@/components/NodeConfigPanel/NodeConfigPanel';
 import WorkflowCanvas from '@/components/WorkflowCanvas/WorkflowCanvas';
 import { useWorkflowStore } from '@/store/workflowStore';
 import { getNodeCategory } from '@/lib/nodeTypes';
+import api from '@/services/api';
 
 function genId(prefix) {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
@@ -26,6 +27,7 @@ export default function WorkflowEditor() {
   const [status, setStatus] = useState('draft');
   const [isSaving, setIsSaving] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
+  const [isExecuting, setIsExecuting] = useState(false);
 
   useEffect(() => {
     if (id) fetchWorkflow(id);
@@ -90,6 +92,17 @@ export default function WorkflowEditor() {
     router.push(`/workflows/${copy.id}`);
   };
 
+  const handleExecute = async () => {
+    setIsExecuting(true);
+    try {
+      await updateCurrent({ name, status, nodes, edges });
+      const { data } = await api.post(`/workflows/${id}/execute`);
+      router.push(`/executions/${data.execution.id}`);
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
   if (isLoadingCurrent || !current) {
     return (
       <ProtectedRoute>
@@ -140,12 +153,12 @@ export default function WorkflowEditor() {
                 Duplicate
               </button>
               <button
-                disabled
-                title="Execution engine ships in Phase 4"
-                className="flex items-center gap-1.5 rounded-md border border-surface-border px-3 py-1.5 text-sm text-slate-500 opacity-50"
+                onClick={handleExecute}
+                disabled={isExecuting || nodes.length === 0}
+                className="flex items-center gap-1.5 rounded-md border border-green-500/30 px-3 py-1.5 text-sm text-green-400 hover:bg-green-500/10 disabled:opacity-50"
               >
                 <Play className="h-4 w-4" />
-                Execute
+                {isExecuting ? 'Starting...' : 'Execute'}
               </button>
               <button
                 onClick={handleSave}
