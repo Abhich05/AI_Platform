@@ -1,17 +1,21 @@
 const env = require('../config/env');
 const { buildDeterministicWorkflow } = require('./ruleBasedWorkflowBuilder');
 
-const VALID_NODE_TYPES = [
-  'trigger',
-  'gmail_send',
-  'gmail_read',
-  'slack_post',
-  'discord_post',
-  'sheets_append',
-  'sheets_read',
-  'condition',
-  'delay',
-];
+const CONFIG_FIELDS = {
+  trigger: [],
+  gmail_send: ['to', 'subject', 'body'],
+  gmail_read: ['query'],
+  slack_post: ['channel', 'message'],
+  discord_post: ['channel', 'message'],
+  sheets_append: ['spreadsheetId', 'range', 'values'],
+  sheets_read: ['spreadsheetId', 'range'],
+  condition: ['expression'],
+  delay: ['seconds'],
+};
+
+const VALID_NODE_TYPES = Object.keys(CONFIG_FIELDS);
+
+const NODE_TYPE_SCHEMA = VALID_NODE_TYPES.map((type) => `  - "${type}": config keys = [${CONFIG_FIELDS[type].map((f) => `"${f}"`).join(', ') || 'none'}]`).join('\n');
 
 const SYSTEM_PROMPT = `You are a workflow graph generator for an automation platform. Given a user's plain-English automation request, output ONLY a JSON object (no markdown, no commentary) with this exact shape:
 {
@@ -21,6 +25,8 @@ const SYSTEM_PROMPT = `You are a workflow graph generator for an automation plat
   "edges": [{ "id": string, "source": string, "target": string, "animated": true }],
   "tags": string[]
 }
+Each node's "data.config" object must use EXACTLY these keys for its type (all values are strings, "seconds" is a number) - do not invent other key names:
+${NODE_TYPE_SCHEMA}
 The first node must be type "trigger". Lay nodes out left-to-right with increasing x (e.g. 80, 340, 600...) and the same y (e.g. 150). Every node after the first must be reachable via edges from the trigger.`;
 
 function extractJson(text) {
@@ -37,6 +43,49 @@ function validateWorkflow(workflow) {
   if (!Array.isArray(workflow.edges)) return false;
   if (workflow.nodes[0].type !== 'trigger') return false;
   return workflow.nodes.every((n) => VALID_NODE_TYPES.includes(n.type) && n.id && n.position && n.data);
+}
+
+function sanitizeWorkflow(workflow) {
+  const nodeIds = new Set(workflow.nodes.map((n) => String(n.id)));
+
+  const nodes = workflow.nodes.map((node) => {
+    const allowedFields = CONFIG_FIELDS[node.type] || [];
+    const rawConfig = node.data?.config || {};
+    const config = {};
+    for (const field of allowedFields) {
+      config[field] = field === 'seconds' ? Number(rawConfig[field]) || 0 : String(rawConfig[field] ?? '');
+    }
+
+    return {
+      id: String(node.id),
+      type: node.type,
+      position: {
+        x: Number(node.position?.x) || 0,
+        y: Number(node.position?.y) || 0,
+      },
+      data: {
+        label: String(node.data?.label || node.type),
+        config,
+      },
+    };
+  });
+
+  const edges = workflow.edges
+    .filter((edge) => nodeIds.has(String(edge.source)) && nodeIds.has(String(edge.target)))
+    .map((edge, i) => ({
+      id: String(edge.id || `edge_${i}`),
+      source: String(edge.source),
+      target: String(edge.target),
+      animated: true,
+    }));
+
+  return {
+    name: String(workflow.name || 'Generated Workflow'),
+    description: String(workflow.description || ''),
+    nodes,
+    edges,
+    tags: Array.isArray(workflow.tags) ? workflow.tags.map(String) : [],
+  };
 }
 
 async function generateWithOpenRouter(prompt) {
@@ -93,7 +142,7 @@ async function generateWorkflow(prompt) {
     try {
       const workflow = await generateWithOpenRouter(prompt);
       if (validateWorkflow(workflow)) {
-        return { ...workflow, source: 'openrouter' };
+        return { ...sanitizeWorkflow(workflow), source: 'openrouter' };
       }
       console.error('[aiService] OpenRouter response failed validation, falling back');
     } catch (err) {
@@ -105,7 +154,7 @@ async function generateWorkflow(prompt) {
     try {
       const workflow = await generateWithGemini(prompt);
       if (validateWorkflow(workflow)) {
-        return { ...workflow, source: 'gemini' };
+        return { ...sanitizeWorkflow(workflow), source: 'gemini' };
       }
       console.error('[aiService] Gemini response failed validation, falling back');
     } catch (err) {
