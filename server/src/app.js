@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const compression = require('compression');
 const env = require('./config/env');
 const authRoutes = require('./routes/authRoutes');
+const workflowRoutes = require('./routes/workflowRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 function createApp() {
@@ -27,6 +28,7 @@ function createApp() {
   });
 
   app.use('/api/auth', authRoutes);
+  app.use('/api/workflows', workflowRoutes);
 
   app.use(notFound);
   app.use(errorHandler);

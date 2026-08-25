@@ -1,47 +1,74 @@
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 import AppShell from '@/components/AppShell/AppShell';
+import MetricGrid from '@/components/MetricGrid/MetricGrid';
 import { useAuthStore } from '@/store/authStore';
+import api from '@/services/api';
 
 export default function Dashboard() {
   const { user, fetchProfile } = useAuthStore();
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProfile().finally(() => setLoading(false));
+    Promise.all([fetchProfile(), api.get('/workflows/dashboard')])
+      .then(([, res]) => setStats(res.data))
+      .finally(() => setLoading(false));
   }, [fetchProfile]);
+
+  const metrics = stats
+    ? [
+        { label: 'Active workflows', value: stats.activeWorkflows },
+        { label: 'Executions today', value: stats.executionsToday },
+        { label: 'Success rate', value: stats.successRate !== null ? `${stats.successRate}%` : '—' },
+      ]
+    : [];
 
   return (
     <ProtectedRoute>
       <AppShell>
-        <h1 className="text-xl font-semibold">
-          Welcome{user?.name ? `, ${user.name}` : ''}
-        </h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Your operator console. Workflow metrics, execution activity, and the AI feed will
-          appear here as they come online in later phases.
-        </p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold">
+              Welcome{user?.name ? `, ${user.name}` : ''}
+            </h1>
+            <p className="mt-1 text-sm text-slate-400">
+              Your operator console. Execution activity and the AI feed will appear here as
+              later phases come online.
+            </p>
+          </div>
+          <Link
+            href="/workflows"
+            className="flex items-center gap-2 rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400"
+          >
+            <Plus className="h-4 w-4" />
+            Go to workflows
+          </Link>
+        </div>
 
-        {loading ? (
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="h-24 animate-pulse rounded-lg border border-surface-border bg-surface-card" />
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            {[
-              { label: 'Active workflows', value: '0' },
-              { label: 'Executions today', value: '0' },
-              { label: 'Success rate', value: '—' },
-            ].map(({ label, value }) => (
-              <div key={label} className="rounded-lg border border-surface-border bg-surface-card p-4">
-                <p className="text-xs text-slate-400">{label}</p>
-                <p className="mt-2 text-2xl font-semibold">{value}</p>
-              </div>
-            ))}
-          </div>
-        )}
+        <MetricGrid metrics={metrics} loading={loading} />
+
+        <div className="mt-6 rounded-lg border border-surface-border bg-surface-card p-4">
+          <h2 className="mb-3 text-sm font-semibold text-slate-200">Recent executions</h2>
+          {loading ? (
+            <div className="h-16 animate-pulse rounded-md bg-white/5" />
+          ) : stats?.recentExecutions?.length ? (
+            <ul className="divide-y divide-surface-border text-sm">
+              {stats.recentExecutions.map((exec) => (
+                <li key={exec._id} className="flex justify-between py-2 text-slate-300">
+                  <span>{exec.workflowId}</span>
+                  <span className="text-slate-500">{exec.status}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">
+              No executions yet. Runs will appear here once the agent orchestration engine ships.
+            </p>
+          )}
+        </div>
       </AppShell>
     </ProtectedRoute>
   );
