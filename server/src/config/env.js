@@ -18,7 +18,9 @@ const env = {
   REDIS_URL: process.env.REDIS_URL || '',
 
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || '',
+  OPENROUTER_MODEL: process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
 
   SERVER_URL: process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`,
 

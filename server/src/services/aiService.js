@@ -47,7 +47,7 @@ async function generateWithOpenRouter(prompt) {
       Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'openai/gpt-4o-mini',
+      model: env.OPENROUTER_MODEL,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: prompt },
@@ -68,7 +68,7 @@ async function generateWithOpenRouter(prompt) {
 
 async function generateWithGemini(prompt) {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL}:generateContent?key=${env.GEMINI_API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
