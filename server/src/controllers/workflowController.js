@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const workflowService = require('../services/workflowService');
+const aiService = require('../services/aiService');
 
 function handleValidation(req, res) {
   const errors = validationResult(req);
@@ -28,6 +29,17 @@ async function list(req, res, next) {
       search,
       status,
     });
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function generate(req, res, next) {
+  if (handleValidation(req, res)) return;
+  try {
+    const { prompt } = req.body;
+    const result = await aiService.generateWorkflow(prompt);
     res.status(200).json(result);
   } catch (err) {
     next(err);
@@ -81,4 +93,4 @@ async function remove(req, res, next) {
   }
 }
 
-module.exports = { dashboard, list, create, getById, update, duplicateWorkflow, remove };
+module.exports = { dashboard, list, generate, create, getById, update, duplicateWorkflow, remove };

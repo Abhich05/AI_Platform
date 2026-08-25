@@ -67,6 +67,11 @@ export const useWorkflowStore = create((set, get) => ({
     return data.workflow;
   },
 
+  generateFromPrompt: async (prompt) => {
+    const { data } = await api.post('/workflows/generate', { prompt });
+    return data;
+  },
+
   deleteWorkflow: async (id) => {
     await api.delete(`/workflows/${id}`);
   },

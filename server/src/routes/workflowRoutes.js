@@ -11,6 +11,12 @@ router.get('/dashboard', workflowController.dashboard);
 router.get('/', workflowController.list);
 
 router.post(
+  '/generate',
+  [body('prompt').trim().notEmpty().withMessage('Prompt is required')],
+  workflowController.generate
+);
+
+router.post(
   '/',
   [
     body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),

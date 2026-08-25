@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Plus, Search, Copy, Trash2, Workflow as WorkflowIcon } from 'lucide-react';
+import Link from 'next/link';
+import { Plus, Search, Copy, Trash2, Workflow as WorkflowIcon, Sparkles } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 import AppShell from '@/components/AppShell/AppShell';
 import { useWorkflowStore } from '@/store/workflowStore';
@@ -69,14 +70,23 @@ export default function WorkflowsList() {
             <h1 className="text-xl font-semibold">Workflows</h1>
             <p className="mt-1 text-sm text-slate-400">Create, edit, and manage your automations.</p>
           </div>
-          <button
-            onClick={handleCreate}
-            disabled={creating}
-            className="flex items-center gap-2 rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400 disabled:opacity-60"
-          >
-            <Plus className="h-4 w-4" />
-            {creating ? 'Creating...' : 'New Workflow'}
-          </button>
+          <div className="flex gap-2">
+            <Link
+              href="/workflows/builder"
+              className="flex items-center gap-2 rounded-md border border-indigo-500/40 px-4 py-2 text-sm font-medium text-indigo-300 hover:bg-indigo-500/10"
+            >
+              <Sparkles className="h-4 w-4" />
+              Generate with AI
+            </Link>
+            <button
+              onClick={handleCreate}
+              disabled={creating}
+              className="flex items-center gap-2 rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400 disabled:opacity-60"
+            >
+              <Plus className="h-4 w-4" />
+              {creating ? 'Creating...' : 'New Workflow'}
+            </button>
+          </div>
         </div>
 
         <div className="mb-4 flex gap-3">
