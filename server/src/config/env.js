@@ -19,6 +19,18 @@ const env = {
 
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || '',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+
+  SERVER_URL: process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`,
+
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+
+  SLACK_CLIENT_ID: process.env.SLACK_CLIENT_ID || '',
+  SLACK_CLIENT_SECRET: process.env.SLACK_CLIENT_SECRET || '',
+
+  DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID || '',
+  DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET || '',
+  DISCORD_BOT_TOKEN: process.env.DISCORD_BOT_TOKEN || '',
 };
 
 module.exports = env;
