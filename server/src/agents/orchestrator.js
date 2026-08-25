@@ -5,6 +5,7 @@ const executionAgent = require('./executionAgent');
 const validationAgent = require('./validationAgent');
 const recoveryAgent = require('./recoveryAgent');
 const monitoringAgent = require('./monitoringAgent');
+const { emitToUser } = require('../config/socket');
 
 let langGraphAvailable = false;
 try {
@@ -172,7 +173,7 @@ async function runWorkflow(workflow, execution) {
       : 'Execution completed successfully',
   });
 
-  await Notification.create({
+  const notification = await Notification.create({
     owner: execution.owner,
     workflowId: workflow._id,
     executionId: execution._id,
@@ -184,6 +185,21 @@ async function runWorkflow(workflow, execution) {
       ? failure.message
       : `Executed ${order.length} node(s) successfully.`,
   });
+
+  try {
+    emitToUser(execution.owner.toString(), 'notification:new', {
+      id: notification._id,
+      workflowId: notification.workflowId,
+      executionId: notification.executionId,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      isRead: notification.isRead,
+      createdAt: notification.createdAt,
+    });
+  } catch (err) {
+    // Socket.IO not initialized (e.g. an isolated script run) - the notification is already persisted.
+  }
 
   return execution;
 }

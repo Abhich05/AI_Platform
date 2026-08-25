@@ -1,7 +1,7 @@
 const Execution = require('../models/Execution');
 const ExecutionLog = require('../models/ExecutionLog');
 const Workflow = require('../models/Workflow');
-const orchestrator = require('../agents/orchestrator');
+const executionQueue = require('../queues/executionQueue');
 const { AppError } = require('./authService');
 
 function serializeExecution(exec) {
@@ -44,14 +44,7 @@ async function triggerExecution(owner, workflowId, inputs = {}) {
     inputs,
   });
 
-  orchestrator.runWorkflow(workflow, execution).catch(async (err) => {
-    console.error('[orchestrator] unhandled error running workflow', err);
-    await Execution.findByIdAndUpdate(execution._id, {
-      status: 'FAILED',
-      error: { code: 'ORCHESTRATOR_ERROR', message: err.message },
-      endTime: new Date(),
-    });
-  });
+  await executionQueue.enqueueExecution(workflow, execution);
 
   return serializeExecution(execution);
 }

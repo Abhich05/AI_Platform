@@ -28,4 +28,8 @@ async function list(owner, { page = 1, limit = 20 } = {}) {
   };
 }
 
-module.exports = { list, serialize };
+async function markAllRead(owner) {
+  await Notification.updateMany({ owner, isRead: false }, { $set: { isRead: true } });
+}
+
+module.exports = { list, serialize, markAllRead };

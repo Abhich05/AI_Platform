@@ -3,9 +3,11 @@ const createApp = require('./app');
 const env = require('./config/env');
 const { connectDB } = require('./config/db');
 const { initSocket } = require('./config/socket');
+const { initQueue } = require('./queues/executionQueue');
 
 async function main() {
   await connectDB();
+  initQueue();
 
   const app = createApp();
   const server = http.createServer(app);

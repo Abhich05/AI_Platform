@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { ArrowLeft, Pause, Play, Square } from 'lucide-react';
+import { ArrowLeft, Pause, Play, Square, Radio } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 import AppShell from '@/components/AppShell/AppShell';
 import api from '@/services/api';
+import { connectSocket } from '@/services/socket';
 
 const STATUS_STYLES = {
   PENDING: 'bg-slate-500/10 text-slate-300',
@@ -45,6 +46,7 @@ export default function ExecutionDetail() {
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [isLive, setIsLive] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -57,15 +59,51 @@ export default function ExecutionDetail() {
     setLoading(false);
   }, [id]);
 
+  const refreshExecution = useCallback(async () => {
+    if (!id) return;
+    const { data } = await api.get(`/executions/${id}`);
+    setExecution(data.execution);
+  }, [id]);
+
   useEffect(() => {
     load();
   }, [load]);
 
   useEffect(() => {
-    if (!execution || !ACTIVE_STATUSES.includes(execution.status)) return;
-    const interval = setInterval(load, 2000);
+    if (!id) return undefined;
+
+    const socket = connectSocket();
+    socket.emit('subscribe:execution', id);
+
+    const onConnect = () => {
+      setIsLive(true);
+      socket.emit('subscribe:execution', id);
+    };
+    const onDisconnect = () => setIsLive(false);
+    const onLog = (event) => {
+      if (event.executionId !== id) return;
+      setTimeline((prev) => (prev.some((e) => e._id === event.id) ? prev : [...prev, { ...event, _id: event.id }]));
+      refreshExecution();
+    };
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('execution:log', onLog);
+    setIsLive(socket.connected);
+
+    return () => {
+      socket.emit('unsubscribe:execution', id);
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('execution:log', onLog);
+    };
+  }, [id, refreshExecution]);
+
+  useEffect(() => {
+    if (!execution || !ACTIVE_STATUSES.includes(execution.status) || isLive) return undefined;
+    const interval = setInterval(load, 3000);
     return () => clearInterval(interval);
-  }, [execution, load]);
+  }, [execution, load, isLive]);
 
   const handleAction = async (action) => {
     setActionLoading(true);
@@ -104,6 +142,12 @@ export default function ExecutionDetail() {
                 <span className={`rounded-full px-2 py-0.5 ${STATUS_STYLES[execution.status]}`}>
                   {execution.status}
                 </span>
+                {isLive && (
+                  <span className="flex items-center gap-1 text-green-400">
+                    <Radio className="h-3 w-3" />
+                    Live
+                  </span>
+                )}
                 <span>Duration: {formatDuration(execution.duration)}</span>
                 <span>Retries: {execution.retryCount}</span>
                 <span>LangGraph: {execution.langGraph}</span>

@@ -13,4 +13,13 @@ async function list(req, res, next) {
   }
 }
 
-module.exports = { list };
+async function markAllRead(req, res, next) {
+  try {
+    await notificationService.markAllRead(req.user._id);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { list, markAllRead };
